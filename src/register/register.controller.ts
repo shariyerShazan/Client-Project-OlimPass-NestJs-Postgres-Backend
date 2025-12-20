@@ -69,4 +69,22 @@ async getAllRegistrations(
     )
   }
 }
+
+
+@Get('send-mail/:id')
+  async sendMembershipMail(@Param('id') id: string) {
+    const registration = await this.registerService.getRegistrationById(id);
+
+    if (!registration.isActive) {
+      return { success: false, message: 'Registration is not active yet.' };
+    }
+
+    try {
+      await this.registerService.sendMembershipEmail(registration.id);
+      return { success: true, message: 'Membership email sent.' };
+    } catch (err) {
+      console.error('Mail send failed:', err);
+      return { success: false, message: 'Failed to send membership email.' };
+    }
+  }
 }

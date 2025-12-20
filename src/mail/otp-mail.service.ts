@@ -1,22 +1,19 @@
+
+
+
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { MailClient } from './mail.client';
 
 @Injectable()
 export class OtpMailService {
-  private transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER!,
-      pass: process.env.EMAIL_PASS!,
-    },
-  });
+  constructor(private readonly mailClient: MailClient) {}
 
-  async sendOtpEmail(to: string, name: string, otp: string) {
-    await this.transporter.sendMail({
-      from: `"Olim Pass" <${process.env.EMAIL_USER}>`,
+  async sendOtp(to: string, name: string, otp: string) {
+    return this.mailClient.send({
       to,
+      name,
       subject: 'Your OTP for Redeeming Discount',
-      html: `
+       html: `
         <div style="
             width: 100%;
             background-color: #f4f4f4;
@@ -79,7 +76,5 @@ export class OtpMailService {
         </div>
       `,
     });
-
-    console.log(`OTP email sent to ${to}`);
   }
 }

@@ -1,23 +1,20 @@
+
+
+
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { MailClient } from './mail.client';
 
 @Injectable()
 export class RedeemMailService {
-  private transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER!,
-      pass: process.env.EMAIL_PASS!,
-    },
-  });
+  constructor(private readonly mailClient: MailClient) {}
 
-  async sendRedeemEmail(to: string, redeemData: any) {
-    const { registration, partner, redeemedAt , remainRedeems} = redeemData;
+  async semdRedeemData(to: string, name: string ,redeemData: any) {
+        const { registration, partner, redeemedAt , remainRedeems} = redeemData;
 
-    await this.transporter.sendMail({
-      from: `"Olim Pass" <${process.env.EMAIL_USER}>`,
+    return this.mailClient.send({
       to,
-      subject: 'Your Discount Has Been Redeemed!',
+      name,
+      subject:  'Your Discount Has Been Redeemed!',
       html: `
       <div style="width:100%; background-color:#f4f4f4; padding:40px 0; font-family: Arial, sans-serif;">
         <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:10px; padding:30px; box-shadow:0px 4px 15px rgba(0,0,0,0.1);">
@@ -66,7 +63,5 @@ export class RedeemMailService {
       </div>
       `,
     });
-
-    console.log(`Redeem confirmation email sent to ${to}`);
   }
 }

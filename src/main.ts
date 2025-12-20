@@ -9,7 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
    app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173' , 'http://localhost:5174' , 'http://localhost:5175'], 
+    origin: ['http://localhost:3000', 'http://localhost:5173' , 'http://localhost:5174' , 'http://localhost:5175' , "https://sophie-six.vercel.app"], 
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true, 
   });
@@ -22,9 +22,12 @@ async function bootstrap() {
   );
   app.use(
     '/webhook',
-    bodyParser.raw({ type: 'application/json' }),
+    bodyParser.raw({ type: 'application/json' ,  limit: '10mb'}),
   );
-  await app.listen(process.env.PORT ?? 3333);
+  app.use(bodyParser.json())
+
+const PORT = process.env.PORT || 3333;
+  await app.listen(PORT);
 }
 bootstrap();
 

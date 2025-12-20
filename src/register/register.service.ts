@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Stripe from 'stripe';
-import { MailService } from 'src/mail/mail.service';
+import { MembershipMailService } from 'src/mail/membership-mail.service';
 import { CreateRegistrationDto } from './dto/create-registration.dto';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class RegisterService {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-11-17.clover' });
 
   constructor(private prisma: PrismaService
-    , private mailService: MailService
+    , private mailService: MembershipMailService
   ) {}
 
   private async generateUniqueMembershipId(): Promise<string> {
@@ -44,7 +44,7 @@ export class RegisterService {
     if (existing) {
       const today = new Date();
       if (existing.validTo > today) {
-         await this.mailService.sendMembershipEmail(
+         await this.mailService.sendMembership(
           existing.email,
           existing.firstName,
           existing.membershipId,
@@ -99,13 +99,6 @@ const paymentIntent = await this.stripe.paymentIntents.create({
   },
 });
 
-
-
-
-
-
-
-    // Save payment record
     const paymentRecord = await this.prisma.payment.create({
       data: {
         registrationId: registration.id,
@@ -117,11 +110,6 @@ const paymentIntent = await this.stripe.paymentIntents.create({
       },
     });
 
-    //  await this.mailService.sendMembershipEmail(
-    //       registration.email,
-    //       registration.firstName,
-    //       membershipId,
-    //     );
 
     return {
       registration,
@@ -130,15 +118,18 @@ const paymentIntent = await this.stripe.paymentIntents.create({
     };
   }
 
+
+
+
+  
   async getRegistrationById(id: string) {
     const registration = await this.prisma.registration.findUnique({
       where: { id },
     });
 
-    if (!registration) {
+      if(!registration){
       throw new Error('Registration not found');
     }
-
     return registration;
   }
 
@@ -177,5 +168,23 @@ async findAll(
     totalPages: Math.ceil(total / limitNum),
   }
 }
+
+
+async sendMembershipEmail(registrationId: string) {
+  const registration = await this.prisma.registration.findUnique({
+    where: { id: registrationId },
+  });
+
+  if (!registration) throw new Error('Registration not found');
+
+  const membershipId = registration.membershipId.replace(/^InActive/, '');
+
+  return this.mailService.sendMembership(
+    registration.email,
+    registration.firstName,
+    membershipId,
+  );
+}
+
 
 }

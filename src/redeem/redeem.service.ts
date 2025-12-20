@@ -1,8 +1,8 @@
-import { RedeemMailService } from './../mail/redeem.mail.service';
+import { RedeemMailService } from '../mail/redeem-mail.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { addMinutes, addDays, isAfter, isBefore } from 'date-fns';
-import { OtpMailService } from 'src/mail/otp.mail.service';
+import { OtpMailService } from 'src/mail/otp-mail.service';
 
 @Injectable()
 export class RedeemService {
@@ -64,7 +64,7 @@ export class RedeemService {
       },
     });
 
-    await this.otpMailService.sendOtpEmail(
+    await this.otpMailService.sendOtp(
         registration.email,
         registration.firstName+' '+registration.lastName,
         otp
@@ -177,8 +177,9 @@ async redeem(membershipId: string, otp: string, partnerId: string) {
 
   let remainRedeems =  partner.maxRedeems - redeem.redeemCount
   // Send Redeem Email
-  await this.redeemMailService.sendRedeemEmail(
+  await this.redeemMailService.semdRedeemData(
     redeem.registration.email,
+    `${redeem.registration.firstName} ${redeem.registration.lastName}`,
     {
       registration: redeem.registration,
       partner: redeem.partner,
